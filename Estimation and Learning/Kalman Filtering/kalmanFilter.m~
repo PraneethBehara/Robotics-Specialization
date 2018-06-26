@@ -1,0 +1,44 @@
+function [ predictx, predicty, state, param ] = kalmanFilter( t, x, y, state, param, previous_t )
+%UNTITLED Summary of this function goes here
+%   Four dimensional state: position_x, position_y, velocity_x, velocity_y
+
+    %% Place parameters like covarainces, etc. here:
+    % P = eye(4)
+    % R = eye(2)
+    dt = t - previous_t;
+    % dt = 0.033;
+    A = [1 0 dt 0; 0 1 0 dt; 0 0 1 0; 0 0 0 1];
+    C = [1 0 0 0; 0 1 0 0];
+    sigmam = 0.1*eye(4);
+    sigmao = 0.01*eye(2);
+
+    % Check if the first time running this function
+    if previous_t<0
+        state = [x, y, 0, 0];
+        param.P = 3 * eye(4);
+        predictx = x;
+        predicty = y;
+        return;
+    end
+
+    %% TODO: Add Kalman filter updates
+    % As an example, here is a Naive estimate without a Kalman filter
+    % You should replace this code
+    
+    P = A*param.P*A' + sigmam;
+    R = C*P*C' + sigmao;
+    K = P*C'/(R + C*P*C');
+    
+    z = [x;y];
+    state_new = A*state' + K*(z - C*A*state');
+    vx = state_new(3);
+    vy = state_new(4);
+    
+    % Predict 330ms into the future
+    predictx = state_new(1) + vx * dt * 10;
+    predicty = state_new(2) + vy * dt * 10;
+    % State is a four dimensional element
+    state = [x, y, vx, vy];
+    param.P = P - K*C*P;
+    
+end
